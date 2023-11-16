@@ -5,6 +5,7 @@
     padding: 1rem;
     border: 1px solid #030b6b;
   }
+
   .profile-photo {
     width: 100%;
     // border: 1px solid #fff;
@@ -28,12 +29,14 @@
       text-align: center;
     }
   }
+
   form {
     label {
       display: block;
       font-size: 1.4rem;
       font-weight: 500;
     }
+
     input[type="text"],
     input[type="number"],
     input[type="file"],

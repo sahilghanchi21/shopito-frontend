@@ -1,98 +1,63 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
-import Card from "../../components/card/Card";
-
+import React, { useEffect, useState } from "react";
 import "./Profile.scss";
-
+import PageMenu from "../../components/pageMenu/PageMenu";
 import { useDispatch, useSelector } from "react-redux";
+import Card from "../../components/card/Card";
 import {
   getUser,
-  selectUser,
   updatePhoto,
   updateUser,
 } from "../../redux/features/auth/authSlice";
 import Loader from "../../components/loader/Loader";
+import { AiOutlineArrowRight, AiOutlineCloudUpload } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { shortenText } from "../../utils";
-import PageMenu from "../../components/pageMenu/PageMenu";
-import { AiOutlineCloudUpload } from "react-icons/ai";
 
 const cloud_name = process.env.REACT_APP_CLOUD_NAME;
 const upload_preset = process.env.REACT_APP_UPLOAD_PRESET;
+const url = "http://api.cloudinary.com/v1_1/dtt9ilips/image/upload";
 
 const Profile = () => {
-  // useRedirectLoggedOutUser("/login");
-
-  const dispatch = useDispatch();
-  const { isLoading, isLoggedIn, isSuccess, message, user } = useSelector(
-    (state) => state.auth
-  );
+  const { isLoading, user } = useSelector((state) => state.auth);
   const initialState = {
     name: user?.name || "",
+    photo: user?.photo || "",
     email: user?.email || "",
     phone: user?.phone || "",
     role: user?.role || "",
-    address: user?.address || {},
+    photo: user?.photo || "",
+    // address: {
+    //   address: user?.address.address || "",
+    //   state: user?.address.state || "",
+    //   country: user?.address.country || "",
+    // },
   };
   const [profile, setProfile] = useState(initialState);
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
-  const handleImageChange = (e) => {
-    setProfileImage(e.target.files[0]);
-    setImagePreview(URL.createObjectURL(e.target.files[0]));
-  };
-
-  const savePhoto = async (e) => {
-    e.preventDefault();
-    let imageURL;
-    try {
-      if (
-        profileImage !== null &&
-        (profileImage.type === "image/jpeg" ||
-          profileImage.type === "image/jpg" ||
-          profileImage.type === "image/png")
-      ) {
-        const image = new FormData();
-        image.append("file", profileImage);
-        image.append("cloud_name", cloud_name);
-        image.append("upload_preset", upload_preset);
-
-        // Save image to Cloudinary
-        const response = await fetch(
-          "https://api.cloudinary.com/v1_1/zinotrust/image/upload",
-          { method: "post", body: image }
-        );
-        const imgData = await response.json();
-        console.log(imgData);
-        imageURL = imgData.url.toString();
-      }
-
-      // Save photo to MongoDB
-      const userData = {
-        photo: profileImage ? imageURL : profile.photo,
-      };
-
-      dispatch(updatePhoto(userData));
-      setImagePreview(null);
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (user === null) {
       dispatch(getUser());
     }
   }, [dispatch, user]);
-  // console.log(user);
+
   useEffect(() => {
     if (user) {
       setProfile({
-        name: user.name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        role: user.role || "",
-        address: user.address || {},
+        name: user?.name || "",
+        photo: user?.photo || "",
+        email: user?.email || "",
+        phone: user?.phone || "",
+        role: user?.role || "",
+        photo: user?.photo || "",
+        // address: {
+        //   address: user?.address.address || "",
+        //   state: user?.address.state || "",
+        //   country: user?.address.country || "",
+        // },
       });
     }
   }, [user]);
@@ -102,26 +67,61 @@ const Profile = () => {
     setProfile({ ...profile, [name]: value });
   };
 
+  const handleImageChange = (e) => {
+    setProfileImage(e.target.files[0]);
+    setImagePreview(URL.createObjectURL(e.target.files[0]));
+  };
+
   const saveProfile = async (e) => {
     e.preventDefault();
-    try {
-      const userData = {
-        name: profile.name,
-        phone: profile.phone,
-        address: {
-          address: profile.address,
-          state: profile.state,
-          country: profile.country,
-        },
-      };
-      console.log(userData);
+    const userData = {
+      name: profile.name,
+      email: profile.email,
+      phone: profile.phone,
+      role: profile.role,
+      // address: {
+      //   address: profile.address,
+      //   state: profile.state,
+      //   country: profile.country,
+      // },
+    };
+    console.log(userData);
+    await dispatch(updateUser(userData));
+  };
 
-      dispatch(updateUser(userData));
+  const savePhoto = async (e) => {
+    e.preventDefault();
+    let imageURL;
+    try {
+      if (
+        profileImage !== null &&
+        (profileImage.type === "image/jpeg" ||
+          profileImage.type === "image/png" ||
+          profileImage.type === "image/jpg")
+      ) {
+        const image = new FormData();
+        image.append("file", profileImage);
+        image.append("cloud_name", cloud_name);
+        image.append("upload_preset", upload_preset);
+
+        //save image to cloudinary
+        const response = await fetch(url, { method: "POST", body: image });
+        const imgData = await response.json();
+        // console.log(imgData);
+        imageURL = imgData.url.toString();
+      }
+      //save image to mongodb
+      const userData = {
+        photo: profileImage ? imageURL : profile.photo,
+      };
+
+      await dispatch(updatePhoto(userData));
+      setImagePreview(null);
     } catch (error) {
       toast.error(error.message);
     }
   };
-  console.log(profile);
+
   return (
     <>
       <section>
@@ -131,13 +131,15 @@ const Profile = () => {
           <h2>Profile</h2>
           <div className="--flex-start profile">
             <Card cardClass={"card"}>
-              {!isLoading && user && (
+              {!isLoading && (
                 <>
                   <div className="profile-photo">
                     <div>
                       <img
-                        src={imagePreview === null ? user?.photo : imagePreview}
-                        alt="Profileimg"
+                        src={
+                          imagePreview === null ? profile?.photo : imagePreview
+                        }
+                        alt="Profile"
                       />
                       <h3>Role: {profile.role}</h3>
                       {imagePreview !== null && (
@@ -146,8 +148,8 @@ const Profile = () => {
                             className="--btn --btn-secondary"
                             onClick={savePhoto}
                           >
-                            <AiOutlineCloudUpload size={18} /> &nbsp; Upload
-                            Photo
+                            <AiOutlineCloudUpload size={18} />
+                            Upload Photo
                           </button>
                         </div>
                       )}
@@ -155,7 +157,7 @@ const Profile = () => {
                   </div>
                   <form onSubmit={saveProfile}>
                     <p>
-                      <label>Change Photo:</label>
+                      <label>Change Photo: </label>
                       <input
                         type="file"
                         accept="image/*"
@@ -164,20 +166,22 @@ const Profile = () => {
                       />
                     </p>
                     <p>
-                      <label>Name:</label>
+                      <label>Name</label>
                       <input
                         type="text"
                         name="name"
-                        value={profile?.name}
-                        onChange={handleInputChange}
+                        value={profile.name}
+                        onChange={handleImageChange}
+                        required
                       />
                     </p>
+
                     <p>
                       <label>Email:</label>
                       <input
                         type="email"
                         name="email"
-                        value={profile?.email}
+                        value={profile.email}
                         onChange={handleInputChange}
                         disabled
                       />
@@ -187,17 +191,19 @@ const Profile = () => {
                       <input
                         type="text"
                         name="phone"
-                        value={profile?.phone}
+                        value={profile.phone}
                         onChange={handleInputChange}
+                        required
                       />
                     </p>
-                    <p>
-                      <label>Address:</label>
+                    {/* <p>
+                      <label>Adress:</label>
                       <input
                         type="text"
                         name="address"
                         value={profile?.address?.address}
                         onChange={handleInputChange}
+                        required
                       />
                     </p>
                     <p>
@@ -207,6 +213,7 @@ const Profile = () => {
                         name="state"
                         value={profile?.address?.state}
                         onChange={handleInputChange}
+                        required
                       />
                     </p>
                     <p>
@@ -216,8 +223,9 @@ const Profile = () => {
                         name="country"
                         value={profile?.address?.country}
                         onChange={handleInputChange}
+                        required
                       />
-                    </p>
+                    </p> */}
                     <button className="--btn --btn-primary --btn-block">
                       Update Profile
                     </button>
@@ -233,13 +241,9 @@ const Profile = () => {
 };
 
 export const UserName = () => {
-  const user = useSelector(selectUser);
-
-  const username = user?.name || "...";
-
-  return (
-    <span style={{ color: "#ff7722" }}>Hi, {shortenText(username, 9)} |</span>
-  );
+  const { user } = useSelector((state) => state.auth);
+  const userName = user?.name || "...";
+  return <span style={{ color: "#ff7722" }}>Hi, {shortenText(userName)}</span>;
 };
 
 export default Profile;

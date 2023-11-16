@@ -1,12 +1,12 @@
+import React from "react";
+import ReactDom from "react-dom";
 import styles from "./Loader.module.scss";
-import loaderImg from "../../assets/loader.gif";
-import ReactDOM from "react-dom";
-
+import loaderImage from "../../assets/loader.gif";
 const Loader = () => {
-  return ReactDOM.createPortal(
+  return ReactDom.createPortal(
     <div className={styles.wrapper}>
-      <div className={styles.loader}>
-        <img src={loaderImg} alt="Loading..." />
+      <div>
+        <img src={loaderImage} alt="Loading" />
       </div>
     </div>,
     document.getElementById("loader")
@@ -16,7 +16,7 @@ const Loader = () => {
 export const Spinner = () => {
   return (
     <div className="--center-all">
-      <img src={loaderImg} alt="Loading..." />
+      <img src={loaderImage} alt="Loading" width={40}/>
     </div>
   );
 };

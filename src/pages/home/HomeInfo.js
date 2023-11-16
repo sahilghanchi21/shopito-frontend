@@ -1,4 +1,5 @@
 import React from "react";
+import "./Home.scss";
 import {
   BsCartCheck,
   BsClockHistory,
@@ -29,7 +30,7 @@ const data = [
   },
 ];
 
-const HomeInfoBox = ({ icon, heading, text }) => {
+const HomeInfo = () => {
   return (
     <div className="infoboxes --mb2">
       {data.map((item, index) => {
@@ -47,4 +48,4 @@ const HomeInfoBox = ({ icon, heading, text }) => {
   );
 };
 
-export default HomeInfoBox;
+export default HomeInfo;

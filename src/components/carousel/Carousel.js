@@ -3,8 +3,7 @@ import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import "./Carousel.scss";
 import { responsive } from "./data";
-
-const ProductCarousel = ({ products }) => {
+const ProductCarousel = ({ product }) => {
   return (
     <div>
       <Carousel
@@ -16,7 +15,7 @@ const ProductCarousel = ({ products }) => {
         customTransition="all 500ms ease"
         transitionDuration={1000}
       >
-        {products}
+        {product}
       </Carousel>
     </div>
   );

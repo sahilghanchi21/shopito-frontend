@@ -1,0 +1,16 @@
+export const AppRoutes = {
+  BASE_URL: "/",
+  HOME: "/home",
+  ABOUT: "/about",
+  CONTACT: "/contact",
+  POLICY: "/policy",
+  REGISTER: "/register",
+  LOGIN: "/login",
+  PROFILE: "/profile",
+  DASHBOARD: "/dashboard",
+  SEARCH: "/search",
+  CTEGORIES: "/categories",
+  CART: "/cart",
+  FORGOTPASSWORD: "/forgot-password",
+  PNF: "/*",
+};
